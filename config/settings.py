@@ -25,7 +25,7 @@ class Config:
     SQLSERVER_POOL_SIZE = int(os.getenv('SQLSERVER_POOL_SIZE', 12))
 
     # Waitress (servidor de produccion)
-    SERVER_THREADS = int(os.getenv('SERVER_THREADS', 16))
+    SERVER_THREADS = int(os.getenv('SERVER_THREADS', 12))
 
     # Limite de tickets por impresion para evitar abuso o saturacion
     MAX_TICKETS_POR_IMPRESION = int(os.getenv('MAX_TICKETS_POR_IMPRESION', 50))
