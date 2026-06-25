@@ -6,15 +6,17 @@ from reportlab.pdfgen import canvas
 
 # Ancho estandar de impresora termica de 80 mm
 ANCHO_TICKET = 80 * mm
-ALTO_TICKET = 120 * mm
-MARGEN_SUPERIOR = 10 * mm
-MARGEN_INFERIOR = 10 * mm
+# Alto compacto por ticket para ahorrar rollo
+ALTO_TICKET = 100 * mm
+MARGEN_SUPERIOR = 5 * mm
+MARGEN_INFERIOR = 5 * mm
 
 
 def generar_pdf_tickets(transaction_id, total_documento, denominacion, cantidad_tickets):
     """
     Genera un PDF optimizado para impresora termica de rollo (80 mm de ancho).
-    Todos los tickets se apilan en una sola pagina continua para facilitar la impresion.
+    Todos los tickets se apilan en una sola pagina continua.
+    Cada ticket sigue el formato de campos manuales para el cliente.
     Retorna un BytesIO listo para descargar.
     """
     buffer = BytesIO()
@@ -29,50 +31,58 @@ def generar_pdf_tickets(transaction_id, total_documento, denominacion, cantidad_
         # Posicion Y inicial de este ticket (de arriba hacia abajo)
         y_base = alto_total - MARGEN_SUPERIOR - (i * ALTO_TICKET)
 
-        # Encabezado
+        x_centro = ANCHO_TICKET / 2
+        margen_x = 6 * mm
+
+        # Borde del ticket (rectangulo fino)
+        c.setStrokeColorRGB(0.2, 0.2, 0.2)
+        c.setLineWidth(0.5)
+        c.rect(2 * mm, y_base + 2 * mm, ANCHO_TICKET - 4 * mm, ALTO_TICKET - 4 * mm, fill=0, stroke=1)
+
+        y = y_base + 92 * mm
+
+        # Titulo
         c.setFillColorRGB(0.1, 0.1, 0.1)
-        c.setFont('Helvetica-Bold', 14)
-        c.drawCentredString(ANCHO_TICKET / 2, y_base + 100 * mm, 'TICKET DE PAGO')
-
-        # Linea separadora
-        c.setStrokeColorRGB(0.5, 0.5, 0.5)
-        c.line(5 * mm, y_base + 92 * mm, ANCHO_TICKET - 5 * mm, y_base + 92 * mm)
-
-        # Datos del ticket
-        y = y_base + 80 * mm
-        c.setFont('Helvetica', 10)
-        c.drawCentredString(ANCHO_TICKET / 2, y, 'Transaccion:')
-
-        y -= 6 * mm
-        c.setFont('Helvetica-Bold', 11)
-        c.drawCentredString(ANCHO_TICKET / 2, y, str(transaction_id))
-
-        y -= 14 * mm
-        c.setFont('Helvetica', 10)
-        c.drawCentredString(ANCHO_TICKET / 2, y, 'Monto ticket:')
-
-        y -= 7 * mm
         c.setFont('Helvetica-Bold', 16)
-        c.drawCentredString(ANCHO_TICKET / 2, y, f'Bs {denominacion:,.2f}')
+        c.drawCentredString(x_centro, y, f'TICKET / {denominacion} BS')
 
-        y -= 12 * mm
+        # Instruccion
+        y -= 7 * mm
         c.setFont('Helvetica', 9)
-        c.drawCentredString(ANCHO_TICKET / 2, y, f'Total documento: Bs {total_documento:,.2f}')
+        c.drawCentredString(x_centro, y, 'Completa tus datos y deposita')
+        y -= 4.2 * mm
+        c.drawCentredString(x_centro, y, 'este ticket en la anfora para')
+        y -= 4.2 * mm
+        c.drawCentredString(x_centro, y, 'participar del sorteo.')
 
-        y -= 10 * mm
-        c.setFont('Helvetica-Bold', 12)
-        c.drawCentredString(ANCHO_TICKET / 2, y, f'Ticket {i} de {cantidad_tickets}')
+        # Transaccion y correlativo
+        y -= 7.5 * mm
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(margen_x, y, f'TRANS: {transaction_id}')
+        c.drawRightString(ANCHO_TICKET - margen_x, y, f'TICKET {i}/{cantidad_tickets}')
 
-        y -= 10 * mm
-        c.setFont('Helvetica', 8)
-        c.drawCentredString(ANCHO_TICKET / 2, y, f'Impreso: {fecha_hora}')
+        # Campos manuales
+        y -= 8 * mm
+        campos = ['NOMBRE', 'CELULAR', 'CORREO', 'DIRECCION', 'SUCURSAL']
+        c.setFont('Helvetica-Bold', 10)
+        for campo in campos:
+            c.drawString(margen_x, y, f'{campo}:')
+            c.setLineWidth(0.4)
+            c.setStrokeColorRGB(0.2, 0.2, 0.2)
+            c.line(margen_x + 22 * mm, y + 1 * mm, ANCHO_TICKET - margen_x, y + 1 * mm)
+            y -= 7 * mm
 
-        # Linea de corte punteada entre tickets (excepto despues del ultimo)
-        if i < cantidad_tickets:
-            c.setDash(3, 3)
-            c.setStrokeColorRGB(0.4, 0.4, 0.4)
-            c.line(10 * mm, y_base + 5 * mm, ANCHO_TICKET - 10 * mm, y_base + 5 * mm)
-            c.setDash()
+        # Pie
+        c.setFont('Helvetica-Bold', 11)
+        c.drawCentredString(x_centro, y, 'MUCHA SUERTE!')
+        y -= 5.5 * mm
+        c.setFont('Helvetica-Bold', 9)
+        c.drawCentredString(x_centro, y, 'TU CASA, TU MUNDIAL')
+
+        # Fecha de impresion
+        y -= 6 * mm
+        c.setFont('Helvetica', 7)
+        c.drawCentredString(x_centro, y, f'Impreso: {fecha_hora}')
 
     c.save()
     buffer.seek(0)
