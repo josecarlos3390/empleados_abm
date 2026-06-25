@@ -83,6 +83,21 @@ def tickets():
     )
 
 
+@tickets_bp.route('/comprobante/<transaction_id>')
+def comprobante(transaction_id):
+    """Muestra una pantalla de resumen del ticket impreso."""
+    if not _validar_transaction_id(transaction_id):
+        flash('Número de transacción inválido.', 'danger')
+        return redirect(url_for('tickets.tickets'))
+
+    impresion = obtener_impresion(transaction_id)
+    if not impresion:
+        flash('No se encontró la impresión de esa transacción.', 'danger')
+        return redirect(url_for('tickets.tickets'))
+
+    return render_template('tickets/comprobante.html', impresion=impresion)
+
+
 @tickets_bp.route('/imprimir', methods=['POST'])
 def imprimir():
     """Genera el PDF de tickets, registra la impresión y lo descarga."""

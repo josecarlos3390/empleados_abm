@@ -120,7 +120,7 @@
         Los tickets se imprimieron correctamente.
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Aceptar</button>
+        <button type="button" class="btn btn-success" id="btnAceptarImpresion">Aceptar</button>
       </div>
     </div>
   </div>
@@ -239,6 +239,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         <i class="bi bi-check-circle-fill"></i> Los tickets se imprimieron correctamente.
                     </p>
                 `;
+                // Al presionar Aceptar en el modal de exito, redirigir al comprobante
+                const btnAceptar = document.getElementById('btnAceptarImpresion');
+                btnAceptar.onclick = function () {
+                    modalExito.hide();
+                    window.location.href = `/sge/tickets/comprobante/${transactionId}`;
+                };
+
                 modalExito.show();
             } else {
                 // Error controlado por el servidor (ya impresa, datos inválidos, etc.)

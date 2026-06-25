@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket Impreso{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card shadow border-dark mx-auto" style="max-width: 360px;">
+            <div class="card-body text-center p-4">
+                <h3 class="fw-bold mb-3">TICKET / {{ impresion.denominacion }} BS</h3>
+
+                <p class="small text-muted mb-3">
+                    Completa tus datos y deposita este ticket en la anfora para participar del sorteo.
+                </p>
+
+                <div class="d-flex justify-content-between small fw-bold mb-3">
+                    <span>TRANS: {{ impresion.transaction_id }}</span>
+                    <span>TICKET 1/{{ impresion.cantidad_tickets }}</span>
+                </div>
+
+                <div class="text-start mb-3">
+                    {% for campo in ['NOMBRE', 'CELULAR', 'CORREO', 'DIRECCION', 'SUCURSAL'] %}
+                        <div class="mb-2">
+                            <span class="fw-bold">{{ campo }}:</span>
+                            <div class="border-bottom border-dark mt-1" style="height: 1px;"></div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <h5 class="fw-bold mb-1">MUCHA SUERTE!</h5>
+                <p class="fw-bold small mb-2">TU CASA, TU MUNDIAL</p>
+
+                <p class="text-muted small mb-0">
+                    Impreso: {{ impresion.fecha_impresion.strftime('%d/%m/%Y %H:%M') }}
+                </p>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('tickets.tickets') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-arrow-left-circle"></i> Consultar otro ticket
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
