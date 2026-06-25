@@ -51,10 +51,17 @@
                             <p class="text-muted">Seleccioná una opción para imprimir:</p>
                             <div class="d-grid gap-2">
                                 {% for op in opciones %}
-                                    <form method="POST" action="{{ url_for('tickets.imprimir') }}">
+                                    <form class="form-imprimir" method="POST" action="{{ url_for('tickets.imprimir') }}">
                                         <input type="hidden" name="transaction_id" value="{{ transaccion.transaction_id }}">
                                         <input type="hidden" name="denominacion" value="{{ op.denominacion }}">
-                                        <button type="submit" class="btn btn-outline-success w-100">
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-success w-100 btn-disparar-confirmacion"
+                                            data-transaction-id="{{ transaccion.transaction_id }}"
+                                            data-denominacion="{{ op.denominacion }}"
+                                            data-cantidad="{{ op.cantidad }}"
+                                            data-total="{{ "%.2f"|format(op.total_impreso) }}"
+                                        >
                                             <i class="bi bi-printer"></i>
                                             Imprimir {{ op.cantidad }} ticket(s) de Bs {{ op.denominacion }}
                                             (total Bs {{ "%.2f"|format(op.total_impreso) }})
@@ -73,4 +80,180 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de confirmación previa -->
+<div class="modal fade" id="modalConfirmarImpresion" tabindex="-1" aria-labelledby="modalConfirmarImpresionLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title" id="modalConfirmarImpresionLabel">
+            <i class="bi bi-question-circle-fill"></i> Confirmar impresión
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" id="mensajeConfirmarImpresion">
+        ¿Estás seguro de imprimir los tickets?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btnCancelarImpresion">
+            <i class="bi bi-x-circle"></i> Cancelar
+        </button>
+        <button type="button" class="btn btn-success" id="btnConfirmarImpresion">
+            <i class="bi bi-check-circle"></i> Sí, imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de éxito -->
+<div class="modal fade" id="modalImpreso" tabindex="-1" aria-labelledby="modalImpresoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="modalImpresoLabel">
+            <i class="bi bi-check-circle-fill"></i> Impresión exitosa
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" id="modalImpresoBody">
+        Los tickets se imprimieron correctamente.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast de impresión cancelada -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+  <div id="toastCancelado" class="toast align-items-center text-bg-secondary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="bi bi-x-circle-fill"></i> Impresión cancelada.
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const botonesImprimir = document.querySelectorAll('.btn-disparar-confirmacion');
+
+    const modalConfirmarEl = document.getElementById('modalConfirmarImpresion');
+    const modalConfirmar = new bootstrap.Modal(modalConfirmarEl);
+    const mensajeConfirmar = document.getElementById('mensajeConfirmarImpresion');
+
+    const modalExitoEl = document.getElementById('modalImpreso');
+    const modalExito = new bootstrap.Modal(modalExitoEl);
+    const modalExitoBody = document.getElementById('modalImpresoBody');
+
+    const btnConfirmarImpresion = document.getElementById('btnConfirmarImpresion');
+    const btnCancelarImpresion = document.getElementById('btnCancelarImpresion');
+
+    const toastCanceladoEl = document.getElementById('toastCancelado');
+    const toastCancelado = new bootstrap.Toast(toastCanceladoEl);
+
+    let formPendiente = null;
+    let botonPendiente = null;
+
+    botonesImprimir.forEach(function (boton) {
+        boton.addEventListener('click', function () {
+            formPendiente = boton.closest('form');
+            botonPendiente = boton;
+
+            const transactionId = boton.dataset.transactionId;
+            const denominacion = boton.dataset.denominacion;
+            const cantidad = boton.dataset.cantidad;
+            const total = boton.dataset.total;
+
+            mensajeConfirmar.innerHTML = `
+                <p class="mb-1">¿Estás seguro de imprimir?</p>
+                <p class="mb-1"><strong>Transacción:</strong> ${transactionId}</p>
+                <p class="mb-1"><strong>Cantidad:</strong> ${cantidad} ticket(s)</p>
+                <p class="mb-1"><strong>Denominación:</strong> Bs ${denominacion}</p>
+                <p class="mb-0"><strong>Total a imprimir:</strong> Bs ${total}</p>
+            `;
+
+            modalConfirmar.show();
+        });
+    });
+
+    btnCancelarImpresion.addEventListener('click', function () {
+        modalConfirmar.hide();
+        toastCancelado.show();
+        formPendiente = null;
+        botonPendiente = null;
+    });
+
+    btnConfirmarImpresion.addEventListener('click', async function () {
+        modalConfirmar.hide();
+
+        if (!formPendiente || !botonPendiente) {
+            return;
+        }
+
+        const originalText = botonPendiente.innerHTML;
+        botonPendiente.disabled = true;
+        botonPendiente.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Imprimiendo...';
+
+        try {
+            const response = await fetch(formPendiente.action, {
+                method: 'POST',
+                body: new FormData(formPendiente)
+            });
+
+            const contentType = response.headers.get('Content-Type') || '';
+
+            if (response.ok && contentType.includes('application/pdf')) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+
+                const contentDisposition = response.headers.get('Content-Disposition') || '';
+                let filename = 'tickets.pdf';
+                const matchFilename = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (matchFilename) {
+                    filename = matchFilename[1].replace(/['"]/g, '');
+                }
+
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+
+                const transactionId = botonPendiente.dataset.transactionId;
+                const denominacion = botonPendiente.dataset.denominacion;
+                const cantidad = botonPendiente.dataset.cantidad;
+
+                modalExitoBody.innerHTML = `
+                    <p class="mb-1"><strong>Transacción:</strong> ${transactionId}</p>
+                    <p class="mb-1"><strong>Tickets impresos:</strong> ${cantidad} ticket(s) de Bs ${denominacion}</p>
+                    <p class="mb-0 mt-2 text-success fw-bold">
+                        <i class="bi bi-check-circle-fill"></i> Los tickets se imprimieron correctamente.
+                    </p>
+                `;
+                modalExito.show();
+            } else {
+                // Error controlado por el servidor (ya impresa, datos inválidos, etc.)
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Error al imprimir:', error);
+            window.location.reload();
+        } finally {
+            botonPendiente.disabled = false;
+            botonPendiente.innerHTML = originalText;
+            formPendiente = null;
+            botonPendiente = null;
+        }
+    });
+});
+</script>
 {% endblock %}
