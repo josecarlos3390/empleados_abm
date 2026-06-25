@@ -18,3 +18,6 @@ class Config:
     SQLSERVER_DB = os.getenv('SQLSERVER_DB', '')
     SQLSERVER_USER = os.getenv('SQLSERVER_USER', '')
     SQLSERVER_PASSWORD = os.getenv('SQLSERVER_PASSWORD', '')
+
+    # Limite de tickets por impresion para evitar abuso o saturacion
+    MAX_TICKETS_POR_IMPRESION = int(os.getenv('MAX_TICKETS_POR_IMPRESION', 50))

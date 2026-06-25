@@ -3,6 +3,7 @@ from flask import (
     Blueprint, render_template, request, flash, redirect, url_for, send_file
 )
 
+from config.settings import Config
 from db.sqlserver import buscar_transaccion
 from db.tickets import (
     ya_fue_impresa,
@@ -129,6 +130,14 @@ def imprimir():
     cantidad = int(total // denominacion)
     if cantidad <= 0:
         flash('El total no alcanza para imprimir tickets de esa denominación.', 'danger')
+        return redirect(url_for('tickets.tickets'))
+
+    if cantidad > Config.MAX_TICKETS_POR_IMPRESION:
+        flash(
+            f'La cantidad de tickets a imprimir ({cantidad}) supera el límite permitido de {Config.MAX_TICKETS_POR_IMPRESION}. '
+            'Probá con una denominación mayor o contactá al administrador.',
+            'danger'
+        )
         return redirect(url_for('tickets.tickets'))
 
     total_impreso = cantidad * denominacion
