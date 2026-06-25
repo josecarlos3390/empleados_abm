@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Registro{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm fade-in">
+    <div class="card-header text-white" style="background: linear-gradient(90deg, var(--scarlet-dark), var(--scarlet-main));">
+        <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i> Editar Registro</h4>
+    </div>
+
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+
+            <!-- ===================================================== -->
+            <!-- Información de la Empresa -->
+            <!-- ===================================================== -->
+            <div class="mb-4 section-block">
+                <h5><i class="bi bi-building me-2 text-scarlet"></i> Información de Empresa</h5>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label fw-semibold">Empresa / Sucursal <span class="text-danger">*</span></label>
+                        <input type="text" name="empresa_sucursal" class="form-control" required value="{{ empleado.empresa_sucursal }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Datos Personales -->
+            <!-- ===================================================== -->
+            <div class="mb-4 section-block">
+                <h5><i class="bi bi-person-badge me-2 text-scarlet"></i> Datos Personales</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre" class="form-control" required value="{{ empleado.nombre }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-semibold">Apellido Paterno <span class="text-danger">*</span></label>
+                        <input type="text" name="apellido_paterno" class="form-control" required value="{{ empleado.apellido_paterno }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-semibold">Apellido Materno <span class="text-danger">*</span></label>
+                        <input type="text" name="apellido_materno" class="form-control" required value="{{ empleado.apellido_materno }}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Carnet de Identidad <span class="text-danger">*</span></label>
+                        <input type="text" name="carnet_identidad" class="form-control" required value="{{ empleado.carnet_identidad }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Cargo <span class="text-danger">*</span></label>
+                        <input type="text" name="cargo" class="form-control" required value="{{ empleado.cargo }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Información Laboral -->
+            <!-- ===================================================== -->
+            <div class="mb-4 section-block">
+                <h5><i class="bi bi-calendar-check me-2 text-scarlet"></i> Información Laboral</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Fecha de Ingreso <span class="text-danger">*</span></label>
+                        <input type="text" name="fecha_ingreso" id="fecha_ingreso" class="form-control datepicker" required
+                               value="{{ empleado.fecha_ingreso.strftime('%d/%m/%Y') if empleado.fecha_ingreso else '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Fecha de Salida</label>
+                        <input type="text" name="fecha_salida" id="fecha_salida" class="form-control datepicker"
+                               value="{{ empleado.fecha_salida.strftime('%d/%m/%Y') if empleado.fecha_salida else '' }}">
+                        <small class="text-muted">Dejar en blanco si aún está activo</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Evaluación y Desvinculación -->
+            <!-- ===================================================== -->
+            <div class="mb-4 section-block">
+                <h5><i class="bi bi-clipboard-check me-2 text-scarlet"></i> Evaluación y Desvinculación</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Motivo de Desvinculación</label>
+                        <select name="motivo_desvinculacion" class="form-select">
+                            {% for motivo in motivos %}
+                                <option value="{{ motivo }}" {% if empleado.motivo_desvinculacion == motivo %}selected{% endif %}>
+                                    {{ motivo if motivo else '-- Seleccionar --' }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Evaluación Interna</label>
+                        <select name="evaluacion_interna" class="form-select">
+                            {% for evaluacion in evaluaciones %}
+                                <option value="{{ evaluacion }}" {% if empleado.evaluacion_interna == evaluacion %}selected{% endif %}>
+                                    {{ evaluacion if evaluacion else '-- Seleccionar --' }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Observaciones -->
+            <!-- ===================================================== -->
+            <div class="mb-4 section-block">
+                <h5><i class="bi bi-chat-left-text me-2 text-scarlet"></i> Observaciones</h5>
+                <textarea name="observaciones" class="form-control" rows="4">{{ empleado.observaciones or '' }}</textarea>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Botón Gestionar Anexos (Admin y Editor) -->
+            <!-- ===================================================== -->
+            {% if session.get('user') and session['user']['rol'] in ['admin', 'editor'] %}
+            <div class="mb-3 text-center">
+                <a href="{{ url_for('empleados.ver_anexos', empleado_id=empleado.id) }}"
+                class="btn btn-danger shadow-sm btn-hover w-100 py-2"
+                style="font-size: 1.1rem;">
+                    <i class="bi bi-folder2-open me-2"></i> Gestionar Anexos
+                </a>
+            </div>
+            {% endif %}
+
+
+            <!-- ===================================================== -->
+            <!-- Archivos Adjuntos -->
+            <!-- ===================================================== -->
+            {% if anexos %}
+            <div class="mb-4 section-block">
+                <h5><i class="bi bi-files me-2 text-scarlet"></i> Archivos Adjuntos</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Archivo</th>
+                                <th>Tipo</th>
+                                <th>Tamaño</th>
+                                <th>Fecha</th>
+                                <th>Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for anexo in anexos %}
+                            <tr>
+                                <td><i class="bi bi-file-earmark me-1 text-scarlet"></i>{{ anexo.nombre_archivo }}</td>
+                                <td>{{ anexo.tipo_archivo }}</td>
+                                <td>{{ (anexo.tamano_archivo / 1024) | round(2) }} KB</td>
+                                <td>{{ anexo.fecha_subida.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ anexo.usuario_subida }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ===================================================== -->
+            <!-- Auditoría -->
+            <!-- ===================================================== -->
+            <div class="alert alert-light border-start border-4 border-scarlet">
+                <h6 class="fw-semibold"><i class="bi bi-info-circle me-1 text-scarlet"></i> Información de Auditoría</h6>
+                <div class="row">
+                    <div class="col-md-6 small">
+                        <strong>Creado por:</strong> {{ empleado.usuario_creador }}<br>
+                        <strong>Fecha creación:</strong> {{ empleado.fecha_creacion.strftime('%d/%m/%Y %H:%M') if empleado.fecha_creacion else 'N/A' }}
+                    </div>
+                    <div class="col-md-6 small">
+                        <strong>Modificado por:</strong> {{ empleado.usuario_modificador or 'N/A' }}<br>
+                        <strong>Última modificación:</strong> {{ empleado.fecha_modificacion.strftime('%d/%m/%Y %H:%M') if empleado.fecha_modificacion else 'N/A' }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Botones -->
+            <!-- ===================================================== -->
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary px-4">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="bi bi-save"></i> Actualizar Empleado
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- Scripts -->
+<!-- ===================================================== -->
+<script>
+document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+    const files = e.target.files;
+    const maxSize = 10 * 1024 * 1024;
+    for (let file of files) {
+        if (file.size > maxSize) {
+            alert(`El archivo ${file.name} excede el tamaño máximo de 10MB`);
+            e.target.value = '';
+            return;
+        }
+    }
+});
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/locales/bootstrap-datepicker.es.min.js"></script>
+<script>
+$(function() {
+    $('.datepicker').datepicker({
+        format: 'dd/mm/yyyy',
+        language: 'es',
+        autoclose: true,
+        todayHighlight: true
+    });
+});
+</script>
+
+<style>
+.section-block h5 {
+    color: var(--text-dark);
+    font-weight: 700;
+    border-bottom: 2px solid var(--scarlet-main);
+    padding-bottom: 6px;
+    margin-bottom: 1rem;
+}
+.text-scarlet { color: var(--scarlet-main); }
+.form-label { color: var(--text-dark); }
+.form-control, .form-select {
+    border-radius: 0.5rem;
+    transition: border-color 0.2s ease;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--scarlet-main);
+    box-shadow: 0 0 0 0.2rem rgba(177, 18, 38, 0.15);
+}
+.border-scarlet { border-color: var(--scarlet-main) !important; }
+</style>
+{% endblock %}

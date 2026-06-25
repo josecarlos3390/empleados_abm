@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Empleado{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm fade-in">
+    <div class="card-header text-white" style="background: linear-gradient(90deg, var(--scarlet-dark), var(--scarlet-main));">
+        <h4 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i> Nuevo Registro</h4>
+    </div>
+
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+
+            <!-- ===================================================== -->
+            <!-- Información de la Empresa -->
+            <!-- ===================================================== -->
+            <div class="mb-4 section-block">
+                <h5><i class="bi bi-building me-2 text-scarlet"></i> Información de Empresa</h5>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label fw-semibold">Empresa / Sucursal <span class="text-danger">*</span></label>
+                        <input type="text" name="empresa_sucursal" class="form-control" required placeholder="Ej: Oficina Central - La Paz">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Datos Personales -->
+            <!-- ===================================================== -->
+            <div class="mb-4 section-block">
+                <h5><i class="bi bi-person-badge me-2 text-scarlet"></i> Datos Personales</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre" class="form-control" required placeholder="Ej: Juan">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-semibold">Apellido Paterno <span class="text-danger">*</span></label>
+                        <input type="text" name="apellido_paterno" class="form-control" required placeholder="Ej: Pérez">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-semibold">Apellido Materno <span class="text-danger">*</span></label>
+                        <input type="text" name="apellido_materno" class="form-control" required placeholder="Ej: García">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Carnet de Identidad <span class="text-danger">*</span></label>
+                        <input type="text" name="carnet_identidad" class="form-control" required placeholder="Ej: 12345678">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Cargo <span class="text-danger">*</span></label>
+                        <input type="text" name="cargo" class="form-control" required placeholder="Ej: Desarrollador Senior">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Información Laboral -->
+            <!-- ===================================================== -->
+            <div class="mb-4 section-block">
+                <h5><i class="bi bi-calendar-check me-2 text-scarlet"></i> Información Laboral</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Fecha de Ingreso <span class="text-danger">*</span></label>
+                        <input type="text" name="fecha_ingreso" id="fecha_ingreso" class="form-control datepicker" placeholder="dd/mm/yyyy" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Fecha de Salida</label>
+                        <input type="text" name="fecha_salida" id="fecha_salida" class="form-control datepicker" placeholder="dd/mm/yyyy">
+                        <small class="text-muted">Dejar en blanco si aún está activo</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Evaluación y Desvinculación -->
+            <!-- ===================================================== -->
+            <div class="mb-4 section-block">
+                <h5><i class="bi bi-clipboard-check me-2 text-scarlet"></i> Evaluación y Desvinculación</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Motivo de Desvinculación</label>
+                        <select name="motivo_desvinculacion" class="form-select">
+                            {% for motivo in motivos %}
+                                <option value="{{ motivo }}">{{ motivo if motivo else '-- Seleccionar --' }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Solo si ya no está activo</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Evaluación Interna</label>
+                        <select name="evaluacion_interna" class="form-select">
+                            {% for evaluacion in evaluaciones %}
+                                <option value="{{ evaluacion }}">{{ evaluacion if evaluacion else '-- Seleccionar --' }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Observaciones -->
+            <!-- ===================================================== -->
+            <div class="mb-4 section-block">
+                <h5><i class="bi bi-chat-left-text me-2 text-scarlet"></i> Observaciones</h5>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Observaciones Adicionales</label>
+                    <textarea name="observaciones" class="form-control" rows="4" placeholder="Escriba cualquier observación adicional..."></textarea>
+                </div>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Anexos -->
+            <!-- ===================================================== -->
+            <div class="mb-4 section-block">
+                <h5><i class="bi bi-paperclip me-2 text-scarlet"></i> Anexos</h5>
+
+                <label class="form-label fw-semibold">Adjuntar Archivos</label>
+
+                <!-- Dropzone-like container -->
+                <div id="dropzone" class="border rounded p-4 text-center bg-light" 
+                    style="cursor: pointer; border: 2px dashed #b11226;">
+                    <i class="bi bi-cloud-arrow-up fs-1 text-scarlet"></i>
+                    <p class="mt-2 mb-0">Haz clic aquí o arrastra archivos</p>
+                </div>
+
+                <input type="file" name="anexos" id="fileInput" class="form-control d-none"
+                    multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.zip,.rar">
+
+                <small class="text-muted">Formatos permitidos: PDF, Word, Excel, Imágenes, TXT, ZIP, RAR — Máx. 10MB por archivo</small>
+
+                <!-- Lista de archivos seleccionados -->
+                <ul id="fileList" class="mt-3"></ul>
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Botones -->
+            <!-- ===================================================== -->
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary px-4">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="bi bi-save"></i> Guardar Empleado
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<!-- ===================================================== -->
+<!-- Script para Anexos -->
+<!-- ===================================================== -->
+<script>
+// Referencias
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const fileList = document.getElementById('fileList');
+const maxSize = 10 * 1024 * 1024;
+
+// Clic abre el selector
+dropzone.addEventListener("click", () => fileInput.click());
+
+// Drag & drop
+dropzone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropzone.classList.add("bg-white");
+});
+dropzone.addEventListener("dragleave", () => dropzone.classList.remove("bg-white"));
+dropzone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropzone.classList.remove("bg-white");
+    fileInput.files = e.dataTransfer.files;
+    updateFileList();
+});
+
+// Cuando se seleccionan archivos
+fileInput.addEventListener("change", updateFileList);
+
+function updateFileList() {
+    fileList.innerHTML = "";
+    const files = fileInput.files;
+
+    for (let file of files) {
+        if (file.size > maxSize) {
+            alert(`El archivo ${file.name} excede los 10MB`);
+            fileInput.value = "";
+            fileList.innerHTML = "";
+            return;
+        }
+
+        const li = document.createElement("li");
+        li.textContent = file.name + " (" + Math.round(file.size / 1024) + " KB)";
+        fileList.appendChild(li);
+    }
+}
+</script>
+
+
+<!-- ===================================================== -->
+<!-- Script de validación -->
+<!-- ===================================================== -->
+<script>
+document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+    const files = e.target.files;
+    const maxSize = 10 * 1024 * 1024;
+    for (let file of files) {
+        if (file.size > maxSize) {
+            alert(`El archivo ${file.name} excede el tamaño máximo de 10MB`);
+            e.target.value = '';
+            return;
+        }
+    }
+});
+</script>
+
+<!-- Datepicker -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/locales/bootstrap-datepicker.es.min.js"></script>
+<script>
+$(function() {
+    $('.datepicker').datepicker({
+        format: 'dd/mm/yyyy',
+        language: 'es',
+        autoclose: true,
+        todayHighlight: true
+    });
+});
+</script>
+
+<!-- ✨ Ajustes visuales específicos -->
+<style>
+.section-block h5 {
+    color: var(--text-dark);
+    font-weight: 700;
+    border-bottom: 2px solid var(--scarlet-main);
+    padding-bottom: 6px;
+    margin-bottom: 1rem;
+}
+.text-scarlet { color: var(--scarlet-main); }
+.form-label { color: var(--text-dark); }
+.form-control, .form-select {
+    border-radius: 0.5rem;
+    transition: border-color 0.2s ease;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--scarlet-main);
+    box-shadow: 0 0 0 0.2rem rgba(177, 18, 38, 0.15);
+}
+</style>
+{% endblock %}

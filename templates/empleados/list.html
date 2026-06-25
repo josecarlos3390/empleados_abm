@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+
+{% block title %}Listado de Empleados{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-people-fill"></i> Listado de Control Interno</h2>
+
+    <div class="btn-group" role="group">
+
+        {% if user.rol == 'admin' %}
+        <a href="{{ url_for('empleados.export_excel', 
+            q=query, 
+            order_by='id', 
+            order_dir='asc'
+        ) }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+        </a>
+        {% endif %}
+
+        {% if user.rol in ['admin', 'editor'] %}
+        <a href="{{ url_for('empleados.agregar_empleado') }}" class="btn btn-primary">
+            <i class="bi bi-person-plus-fill"></i> Nuevo
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- BÚSQUEDA -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" action="{{ url_for('empleados.lista_empleados') }}" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" name="q" class="form-control"
+                    placeholder="Buscar..."
+                    value="{{ query }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- TABLA -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+
+            {% if user.rol == 'editor' %}
+            <!-- ========================= -->
+            <!--   TABLA PARA EDITOR       -->
+            <!-- ========================= -->
+            <table class="table table-hover table-bordered mb-0 auto-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th>CARNET DE IDENTIDAD</th>
+                        <th>NOMBRE</th>
+                        <th>APELLIDO PATERNO</th>
+                        <th>APELLIDO MATERNO</th>
+                        <th>MOTIVO DE DESVINCULACIÓN</th>
+                        <th class="sticky-action-col">ACCIONES</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for e in empleados %}
+                    <tr>
+                        <td>{{ e.carnet_identidad }}</td>
+                        <td>{{ e.nombre }}</td>
+                        <td>{{ e.apellido_paterno }}</td>
+                        <td>{{ e.apellido_materno }}</td>
+                        <td>{{ e.motivo_desvinculacion or 'N/A' }}</td>
+
+                        <td class="sticky-action-col bg-white">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('empleados.editar_empleado', id=e.id) }}"
+                                   class="btn btn-warning">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">No hay registros.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            {% else %}
+            {% if user.rol == 'viewer' %}
+            <!-- ========================================================= -->
+            <!--           TABLA VIEWER (sin columna acciones)            -->
+            <!-- ========================================================= -->
+
+            <table class="table table-hover table-bordered mb-0 viewer-table" style="min-width:1200px;">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>EMPRESA/SUCURSAL</th>
+                        <th>NOMBRE</th>
+                        <th>APELLIDO PATERNO</th>
+                        <th>APELLIDO MATERNO</th>
+                        <th>CARNET DE IDENTIDAD</th>
+                        <th>CARGO</th>
+                        <th>FECHA INGRESO</th>
+                        <th>FECHA SALIDA</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for e in empleados %}
+                <tr>
+                    <td><strong>{{ e.id }}</strong></td>
+                    <td>{{ e.empresa_sucursal }}</td>
+                    <td>{{ e.nombre }}</td>
+                    <td>{{ e.apellido_paterno }}</td>
+                    <td>{{ e.apellido_materno }}</td>
+                    <td>{{ e.carnet_identidad }}</td>
+                    <td>{{ e.cargo }}</td>
+                    <td>{{ e.fecha_ingreso.strftime('%d/%m/%Y') if e.fecha_ingreso else 'N/A' }}</td>
+                    <td>
+                        {% if e.fecha_salida %}
+                            {{ e.fecha_salida.strftime('%d/%m/%Y') }}
+                        {% else %}
+                            Activo
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center py-4">No hay registros.</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            {% else %}
+            <!-- ========================================================= -->
+            <!--                 TABLA COMPLETA (ADMIN)                    -->
+            <!-- ========================================================= -->
+
+            <table class="table table-hover table-bordered mb-0" style="min-width:2500px;">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>EMPRESA/SUCURSAL</th>
+                        <th>NOMBRE</th>
+                        <th>APELLIDO PATERNO</th>
+                        <th>APELLIDO MATERNO</th>
+                        <th>CARNET DE IDENTIDAD</th>
+                        <th>CARGO</th>
+                        <th>FECHA INGRESO</th>
+                        <th>FECHA SALIDA</th>
+                        <th>MOTIVO DESVINCULACIÓN</th>
+                        <th>EVALUACIÓN INTERNA</th>
+                        <th>OBSERVACIONES</th>
+                        <th>USUARIO CREADOR</th>
+                        <th>FECHA CREACIÓN</th>
+                        <th>USUARIO MODIFICADOR</th>
+                        <th>FECHA MODIFICACIÓN</th>
+                        <th>ANEXOS</th>
+                        <th class="sticky-action-col">ACCIONES</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for e in empleados %}
+                <tr>
+                    <td><strong>{{ e.id }}</strong></td>
+                    <td>{{ e.empresa_sucursal }}</td>
+                    <td>{{ e.nombre }}</td>
+                    <td>{{ e.apellido_paterno }}</td>
+                    <td>{{ e.apellido_materno }}</td>
+                    <td>{{ e.carnet_identidad }}</td>
+                    <td>{{ e.cargo }}</td>
+                    <td>{{ e.fecha_ingreso.strftime('%d/%m/%Y') if e.fecha_ingreso else 'N/A' }}</td>
+                    <td>
+                        {% if e.fecha_salida %}
+                            {{ e.fecha_salida.strftime('%d/%m/%Y') }}
+                        {% else %}
+                            <span class="badge bg-success">Activo</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ e.motivo_desvinculacion or 'N/A' }}</td>
+
+                    <!-- Evaluación -->
+                    <td>
+                        {% if e.evaluacion_interna %}
+                            {% if e.evaluacion_interna == '4. Moderado' %}
+                                <span class="badge bg-success">{{ e.evaluacion_interna }}</span>
+                            {% elif e.evaluacion_interna in ['3. Leve','Bueno'] %}
+                                <span class="badge bg-primary">{{ e.evaluacion_interna }}</span>
+                            {% elif e.evaluacion_interna == '2. Negativa' %}
+                                <span class="badge bg-warning">{{ e.evaluacion_interna }}</span>
+                            {% elif e.evaluacion_interna == '1. Grave' %}
+                                <span class="badge bg-danger">{{ e.evaluacion_interna }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ e.evaluacion_interna }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Observaciones -->
+                    <td>
+                        {% if e.observaciones %}
+                        <div class="obs-preview">
+                            {{ e.observaciones[:50] }}{% if e.observaciones|length > 50 %}...{% endif %}
+                        </div>
+
+                        <span class="badge bg-info text-white obs-badge"
+                              data-bs-toggle="modal"
+                              data-bs-target="#observacionesModal{{ e.id }}">
+                            Ver completo
+                        </span>
+                        {% else %}
+                        <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ e.usuario_creador or 'N/A' }}</td>
+                    <td>{{ e.fecha_creacion.strftime('%d/%m/%Y %H:%M') if e.fecha_creacion else 'N/A' }}</td>
+                    <td>{{ e.usuario_modificador or 'N/A' }}</td>
+                    <td>{{ e.fecha_modificacion.strftime('%d/%m/%Y %H:%M') if e.fecha_modificacion else 'N/A' }}</td>
+
+                    <td class="text-center">
+                        {% if e.total_anexos > 0 %}
+                            <a href="{{ url_for('empleados.ver_anexos', empleado_id=e.id) }}"
+                            class="btn btn-info btn-sm"
+                            title="{{ e.total_anexos }} archivo(s) adjunto(s)">
+                                <i class="bi bi-paperclip"></i>
+                                {% if e.total_anexos > 0 %}
+                                    <span class="badge bg-danger ms-1">{{ e.total_anexos }}</span>
+                                {% endif %}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">Sin anexos</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- ACCIONES -->
+                    <td style="position: sticky; right: 0; background-color: #212529; color: #fff;">
+                        <div class="btn-group btn-group-sm">
+                            {% if user.rol in ['admin', 'editor'] %}
+                            <a href="{{ url_for('empleados.editar_empleado', id=e.id) }}"
+                               class="btn btn-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% endif %}
+
+                            {% if user.rol == 'admin' %}
+                            <a href="{{ url_for('empleados.historial_empleado', empleado_id=e.id) }}"
+                                class="btn btn-info" title="Ver historial">
+                                <i class="bi bi-clock-history"></i>
+                            </a>
+
+                            <button class="btn btn-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalDelete{{ e.id }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="18" class="text-center py-4">No hay registros.</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    {% if empleados %}
+    <div class="card-footer d-flex justify-content-between text-muted">
+        <small>Total empleados: <strong>{{ empleados|length }}</strong></small>
+        <small class="text-info"><i class="bi bi-arrows-move"></i> Desliza para ver más columnas</small>
+    </div>
+    {% endif %}
+</div>
+
+<!-- MODALES OBSERVACIONES -->
+{% for e in empleados %}
+{% if e.observaciones %}
+<div class="modal fade" id="observacionesModal{{ e.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-chat-left-text-fill me-2"></i>
+                    Observaciones - {{ e.nombre }} {{ e.apellido_paterno }}
+                </h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p style="white-space:pre-wrap;">{{ e.observaciones }}</p>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
+<!-- MODALES ELIMINACIÓN -->
+{% for e in empleados %}
+<div class="modal fade delete-modal" id="modalDelete{{ e.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content delete-animate">
+
+            <div class="modal-header delete-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Confirmar eliminación
+                </h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>¿Eliminar a <strong>{{ e.nombre }} {{ e.apellido_paterno }}</strong>?</p>
+                <p class="text-danger fw-bold">Esta acción no se puede deshacer.</p>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <a href="{{ url_for('empleados.delete_employee', id=e.id) }}" class="btn btn-danger">
+                   <i class="bi bi-trash"></i> Eliminar
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-modal').forEach(function (modalEl) {
+        modalEl.addEventListener('show.bs.modal', function () {
+            const box = modalEl.querySelector('.delete-animate');
+            if (!box) return;
+            box.classList.remove('delete-animate');
+            void box.offsetWidth;
+            box.classList.add('delete-animate');
+        });
+    });
+});
+</script>
+{% endblock %}

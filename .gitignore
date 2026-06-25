@@ -1,0 +1,30 @@
+# Variables de entorno y credenciales
+.env
+
+# Entornos virtuales
+venv/
+venv_test/
+.venv/
+
+# Bytecode Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Configuración de IDEs
+.vscode/
+.idea/
+
+# Logs generados por la aplicación
+logs/
+
+# Archivos subidos por usuarios
+uploads/
+
+# Bases de datos locales (si aplica)
+*.db
+*.sqlite3
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db

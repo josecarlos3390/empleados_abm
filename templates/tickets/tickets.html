@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Tickets de Pago{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-ticket-perforated"></i> Tickets de Pago</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('tickets.tickets') }}">
+                    <div class="mb-3">
+                        <label for="transaction_id" class="form-label">Número de transacción</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="transaction_id"
+                            name="transaction_id"
+                            value="{{ transaction_id }}"
+                            placeholder="Ej. T1SC100380726"
+                            required
+                            autofocus
+                        >
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Consultar
+                    </button>
+                </form>
+
+                {% if ya_impresa and impresion %}
+                    <div class="alert alert-warning mt-4">
+                        <strong><i class="bi bi-exclamation-triangle-fill"></i> Esta transacción ya fue impresa.</strong><br>
+                        No se permite reimprimir.<br>
+                        <small>
+                            Transacción: {{ impresion.transaction_id }}<br>
+                            Tickets: {{ impresion.cantidad_tickets }} de Bs {{ impresion.denominacion }}<br>
+                            Total impreso: Bs {{ "%.2f"|format(impresion.total_impreso) }}<br>
+                            Fecha: {{ impresion.fecha_impresion.strftime('%d/%m/%Y %H:%M') }}
+                        </small>
+                    </div>
+                {% elif transaccion %}
+                    <div class="mt-4">
+                        <h5>Transacción: {{ transaccion.transaction_id }}</h5>
+                        <p class="fs-5">
+                            Total del documento: <strong>Bs {{ "%.2f"|format(transaccion.total) }}</strong>
+                        </p>
+
+                        {% if opciones %}
+                            <p class="text-muted">Seleccioná una opción para imprimir:</p>
+                            <div class="d-grid gap-2">
+                                {% for op in opciones %}
+                                    <form method="POST" action="{{ url_for('tickets.imprimir') }}">
+                                        <input type="hidden" name="transaction_id" value="{{ transaccion.transaction_id }}">
+                                        <input type="hidden" name="denominacion" value="{{ op.denominacion }}">
+                                        <button type="submit" class="btn btn-outline-success w-100">
+                                            <i class="bi bi-printer"></i>
+                                            Imprimir {{ op.cantidad }} ticket(s) de Bs {{ op.denominacion }}
+                                            (total Bs {{ "%.2f"|format(op.total_impreso) }})
+                                        </button>
+                                    </form>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning mt-3">
+                                El total de la factura no alcanza para imprimir tickets de 300 o 500 Bs.
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

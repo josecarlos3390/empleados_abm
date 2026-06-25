@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Historial de Cambios{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-clock-history"></i> Historial de Cambios</h2>
+
+    <!-- BOTÓN VOLVER - COLOR ESCARLATA -->
+    <a href="{{ url_for('empleados.lista_empleados') }}" 
+       class="btn"
+       style="background-color:#b30000; color:white; border:none; transition:0.2s;"
+       onmouseover="this.style.backgroundColor='#800000'"
+       onmouseout="this.style.backgroundColor='#b30000'">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<!-- CARD -->
+<div class="card">
+
+    <!-- HEADER COLOR ROJO ESCARLATA -->
+    <div class="card-header text-white" 
+         style="background-color:#b30000;">
+        <h5 class="mb-0">
+            <i class="bi bi-person-lines-fill"></i>
+            Historial de modificaciones de:
+            <strong>{{ empleado.nombre }} {{ empleado.apellido_paterno }}</strong>
+        </h5>
+    </div>
+
+    <div class="card-body p-0">
+
+        {% if historial %}
+        <div class="table-responsive" style="overflow-x: auto;">
+            <table class="table table-hover table-bordered mb-0" style="min-width: 1100px;">
+
+                <!-- CABECERA TABLA COLOR ROJO ESCARLATA -->
+                <thead style="position: sticky; top: 0; z-index: 10; background-color:#b30000; color:white;">
+                    <tr>
+                        <th style="min-width: 170px;">Fecha</th>
+                        <th style="min-width: 200px;">Campo</th>
+                        <th style="min-width: 250px;">Valor Anterior</th>
+                        <th style="min-width: 250px;">Valor Nuevo</th>
+                        
+                        <!-- STICKY COLUMN USUARIO -->
+                        <th style="
+                            min-width: 180px; 
+                            position: sticky; 
+                            right: 0; 
+                            background-color:#b30000; 
+                            color:#fff;">
+                            Usuario
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for h in historial %}
+                    <tr>
+
+                        <!-- FECHA -->
+                        <td>
+                            <i class="bi bi-calendar-check"></i>
+                            {{ h.fecha_formateada or "—" }}
+                        </td>
+
+                        <!-- CAMPO -->
+                        <td><strong>{{ h.campo }}</strong></td>
+
+                        <!-- VALOR ANTERIOR -->
+                        <td>
+                            {% if h.valor_anterior %}
+                                <span class="badge bg-danger text-white" 
+                                      style="font-size: .8rem;"
+                                      data-bs-toggle="tooltip"
+                                      title="{{ h.valor_anterior }}">
+                                    {{ h.valor_anterior }}
+                                </span>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <!-- VALOR NUEVO -->
+                        <td>
+                            {% if h.valor_nuevo %}
+                                <span class="badge bg-success text-white"
+                                      style="font-size: .8rem;"
+                                      data-bs-toggle="tooltip"
+                                      title="{{ h.valor_nuevo }}">
+                                    {{ h.valor_nuevo }}
+                                </span>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <!-- USUARIO -->
+                        <td style="
+                            position: sticky; 
+                            right: 0; 
+                            background-color:#212529; 
+                            color: #fff;">
+                            
+                            {% if h.usuario_nombre %}
+                                <span class="badge bg-primary" style="font-size: .8rem;">
+                                    <i class="bi bi-person-fill"></i>
+                                    {{ h.usuario_nombre }}
+                                </span>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+        {% else %}
+        <div class="text-center py-4">
+            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+            <p class="mt-2 text-muted">No hay cambios registrados para este empleado.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card-footer text-muted">
+        <div class="d-flex justify-content-between align-items-center">
+            <small>Total de cambios: <strong>{{ historial|length }}</strong></small>
+            <small class="text-info"><i class="bi bi-arrows-move"></i> Desliza para ver más</small>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* Activar tooltips de Bootstrap */
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map(el => new bootstrap.Tooltip(el))
+</script>
+
+{% endblock %}

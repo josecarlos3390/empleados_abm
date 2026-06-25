@@ -1,0 +1,443 @@
+/* ==========================================
+   SISTEMA DE GESTIÓN DE EMPLEADOS
+   Paleta Escarlata Profesional - Estilo Unificado
+   ========================================== */
+
+/* 🎨 PALETA PRINCIPAL */
+:root {
+    --scarlet-dark: #7a0000;
+    --scarlet-main: #b11226;
+    --scarlet-mid: #d62828;
+    --scarlet-light: #f94144;
+    --gray-bg: #f6f7f9;
+    --gray-light: #ffffff;
+    --gray-border: #e1e4e8;
+    --text-dark: #212529;
+    --text-muted: #6c757d;
+}
+
+/* 🧱 BASE GLOBAL */
+body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg, var(--gray-bg) 0%, var(--gray-light) 100%);
+    color: var(--text-dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    animation: fadeInPage 0.6s ease-in-out;
+    margin: 0;
+    padding: 0;
+}
+
+@keyframes fadeInPage {
+    from { opacity: 0; transform: translateY(10px); filter: blur(2px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* 🔻 NAVBAR */
+.main-navbar {
+    background: linear-gradient(90deg, var(--scarlet-dark), var(--scarlet-main), var(--scarlet-mid));
+    padding: 0.9rem 1.5rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+}
+.main-navbar .navbar-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #fff;
+    letter-spacing: 0.4px;
+}
+.main-navbar .btn-outline-light:hover {
+    background-color: #fff;
+    color: var(--scarlet-dark);
+}
+.main-navbar .btn-danger {
+    background-color: var(--scarlet-dark);
+    border: none;
+}
+.main-navbar .btn-danger:hover {
+    background-color: var(--scarlet-mid);
+}
+
+/* 💼 ENCABEZADOS DE SECCIÓN */
+h2, h3 {
+    color: var(--scarlet-dark);
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+h2 i {
+    margin-right: 0.4rem;
+}
+
+/* 🧩 CARDS */
+.card {
+    border: 2px solid var(--scarlet-main);
+    border-radius: 1rem;
+    background: var(--gray-light);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    overflow: hidden;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+.card:hover {
+    border-color: #8b0c1c;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+.card-body {
+    padding: 1.5rem;
+}
+.card-footer {
+    background-color: #fefefe;
+    border-top: 1px solid rgba(177, 18, 38, 0.2);
+}
+
+/* 🔘 BOTONES */
+.btn {
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+.btn-primary {
+    background-color: var(--scarlet-main);
+    border-color: var(--scarlet-main);
+}
+.btn-primary:hover {
+    background-color: var(--scarlet-dark);
+}
+.btn-success {
+    background-color: #1b8a5a;
+    border: none;
+}
+.btn-success:hover {
+    background-color: #146c43;
+}
+
+/* 🔍 FORMULARIOS */
+.form-control {
+    border-radius: 0.5rem;
+    border: 1px solid var(--gray-border);
+    transition: all 0.2s ease;
+}
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--scarlet-main);
+    box-shadow: 0 0 0 0.2rem rgba(177, 18, 38, 0.25);
+}
+
+/* 📋 TABLAS */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.table thead {
+    background: linear-gradient(90deg, var(--scarlet-dark), var(--scarlet-mid));
+    color: #fff;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+.table thead th {
+    background: linear-gradient(180deg, var(--scarlet-main) 0%, var(--scarlet-dark) 100%);
+    padding: 0.85rem;
+    border: none;
+    text-align: center;
+    color: #fff !important;
+}
+.table tbody td {
+    text-align: center;
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+.table tbody tr:hover {
+    background-color: #fff4f4;
+}
+
+/* ❌ ORIGINAL (ELIMINADO - CAUSABA EL ERROR)
+.table thead th:last-child,
+.table tbody td:last-child {
+    position: sticky;
+    right: 0;
+    background: #212529;
+    color: #fff;
+    z-index: 6;
+}
+*/
+
+/* ✔️ SOLO ADMIN/EDITOR: COLUMNA STICKY */
+.table-sticky-right {
+    position: sticky !important;
+    right: 0 !important;
+    z-index: 50 !important;
+    background-color: #212529 !important;
+    color: white !important;
+}
+
+/* Botones dentro de tablas */
+.table .btn {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    margin: 2px;
+    transition: all 0.2s ease-in-out;
+}
+.table .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.table .btn i {
+    font-size: 1rem;
+}
+
+/* 🏷️ BADGES */
+.badge {
+    border-radius: 0.4rem;
+    font-weight: 500;
+    padding: 0.4em 0.6em;
+}
+
+/* 🔐 LOGIN – CENTRADO PERFECTO */
+body.login-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--scarlet-dark), var(--scarlet-main), var(--scarlet-mid));
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    flex-grow: 1;
+}
+
+.login-card {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    animation: fadeInUp 0.8s ease;
+    text-align: center;
+}
+
+.login-logo {
+    width: 90px;
+    margin-bottom: 1.5rem;
+}
+
+.login-card h3 {
+    color: var(--scarlet-dark);
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+}
+
+/* FOOTER */
+footer, .main-footer, .login-footer {
+    background-color: var(--scarlet-dark);
+    color: #f8f9fa;
+    text-align: center;
+    padding: 1.2rem 0;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    border-top: 3px solid var(--scarlet-main);
+    margin-top: auto;
+}
+
+footer strong {
+    color: var(--scarlet-light);
+}
+
+/* Deshabilitar selección */
+* {
+    user-select: none;
+}
+
+/* ANIMACIONES DEL MODAL */
+.delete-animate {
+    border: 3px solid #ff4d4d !important;
+    border-radius: 14px !important;
+    animation: pulseBorder 1.4s infinite ease-in-out;
+    overflow: visible !important;
+}
+
+.delete-modal.show .delete-animate {
+    animation: shake 0.2s ease-in-out, pulseBorder 1.4s infinite ease-in-out;
+}
+
+.delete-header {
+    background: linear-gradient(90deg, #8b0000, #c40000);
+    color: white !important;
+    border-bottom: none;
+}
+
+.delete-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
+    75% { transform: translateX(-2px); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes pulseBorder {
+    0% { box-shadow: 0 0 0 rgba(255, 0, 0, 0.4); }
+    50% { box-shadow: 0 0 12px rgba(255, 30, 30, 0.9); }
+    100% { box-shadow: 0 0 0 rgba(255, 0, 0, 0.4); }
+}
+
+.modal-content, .modal-dialog {
+    overflow: visible !important;
+}
+
+/* EFECTOS PREMIUM */
+* {
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+                box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #f2f2f2;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--scarlet-main);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--scarlet-dark);
+}
+
+.card {
+    backdrop-filter: blur(4px);
+}
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.25);
+}
+
+.btn:hover {
+    filter: brightness(1.12);
+}
+
+.btn-primary {
+    box-shadow: 0 3px 8px rgba(177, 18, 38, 0.35);
+}
+.btn-primary:hover {
+    box-shadow: 0 5px 12px rgba(177, 18, 38, 0.55);
+}
+
+.form-control {
+    background: #fff;
+}
+.form-control:focus {
+    transform: scale(1.02);
+}
+
+input::placeholder {
+    opacity: 0.7;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #fff9f9;
+}
+
+.table tbody tr:hover {
+    transform: scale(1.01);
+}
+
+.table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+.table .btn {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.10);
+}
+.table .btn:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.20);
+}
+
+.main-navbar {
+    backdrop-filter: blur(4px);
+}
+
+.main-footer {
+    box-shadow: 0 -3px 10px rgba(0,0,0,0.15),
+                inset 0 0 8px rgba(255,255,255,0.15);
+}
+
+h2, h3 {
+    position: relative;
+}
+h2::after, h3::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 30px;
+    height: 3px;
+    background: var(--scarlet-main);
+    border-radius: 2px;
+    opacity: 0.35;
+    transition: width 0.4s ease;
+}
+h2:hover::after, h3:hover::after {
+    width: 65px;
+}
+
+.fade-in {
+    animation: fadeInSlow 0.8s ease;
+}
+@keyframes fadeInSlow {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-content {
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+}
+
+.btn-danger {
+    box-shadow: 0 3px 10px rgba(122,0,0,0.55);
+}
+.btn-danger:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 14px rgba(122,0,0,0.75);
+}
+
+/* ⬇ SOLO ADMIN/EDITOR ACTIVA BOTONES A LA DERECHA */
+.table-sticky-right {
+    position: sticky !important;
+    right: 0 !important;
+    z-index: 50 !important;
+    background-color: #212529 !important;
+    color: white !important;
+}
+
+/* TABLA ANEXOS RESPONSIVA */
+.anexos-table td,
+.anexos-table th {
+    white-space: normal !important;
+    word-break: break-word !important;
+    max-width: 250px;
+    vertical-align: middle !important;
+    line-height: 1.3;
+    padding: 8px 10px !important;
+}
+
+.anexos-table tr {
+    height: auto !important;
+}

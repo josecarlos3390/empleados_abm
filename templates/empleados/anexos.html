@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Anexos de {{ empleado.nombre }}{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4 fade-in">
+
+    <!-- ENCABEZADO -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>
+            <i class="bi bi-paperclip"></i>
+            Anexos de {{ empleado.nombre }} {{ empleado.apellido_paterno }}
+        </h2>
+
+        <!-- VOLVER - COLOR ESCARLATA -->
+        <a href="{{ url_for('empleados.lista_empleados') }}" 
+           class="btn"
+           style="background-color:#b30000; color:white; border:none; transition:0.2s;"
+           onmouseover="this.style.backgroundColor='#800000'"
+           onmouseout="this.style.backgroundColor='#b30000'">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <!-- CARD INFORMACIÓN EMPLEADO -->
+    <div class="card mb-4">
+
+        <!-- HEADER ESTILO HISTORIAL -->
+        <div class="card-header text-white" style="background-color:#b30000;">
+            <i class="bi bi-person-badge"></i> Información de Control Interno
+        </div>
+
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-4"><strong>Nombre:</strong> {{ empleado.nombre }} {{ empleado.apellido_paterno }} {{ empleado.apellido_materno }}</div>
+                <div class="col-md-4"><strong>CI:</strong> {{ empleado.carnet_identidad }}</div>
+                <div class="col-md-4"><strong>Cargo:</strong> {{ empleado.cargo }}</div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-md-4"><strong>Empresa/Sucursal:</strong> {{ empleado.empresa_sucursal }}</div>
+                <div class="col-md-4"><strong>Fecha Ingreso:</strong> {{ empleado.fecha_ingreso.strftime('%d/%m/%Y') if empleado.fecha_ingreso else 'N/A' }}</div>
+                <div class="col-md-4"><strong>Fecha Salida:</strong> {{ empleado.fecha_salida.strftime('%d/%m/%Y') if empleado.fecha_salida else 'Activo' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA DE ANEXOS -->
+    <div class="card">
+
+        <!-- HEADER ESTILO HISTORIAL -->
+        <div class="card-header text-white" style="background-color:#b30000;">
+            <i class="bi bi-folder2-open"></i> Archivos Adjuntos
+        </div>
+
+        <div class="card-body p-0">
+
+            {% if anexos %}
+            <div class="table-responsive" style="overflow-x:auto;">
+                <table class="table table-hover table-bordered mb-0 anexos-table" style="min-width:900px;">
+
+                    <!-- ENCABEZADO ESTILO HISTORIAL -->
+                    <thead style="position: sticky; top:0; z-index:10; background-color:#b30000; color:white;">
+                        <tr>
+                            <th>Nombre del Archivo</th>
+                            <th>Tipo</th>
+                            <th>Tamaño</th>
+                            <th>Fecha Subida</th>
+                            <th>Usuario Subida</th>
+
+                            <!-- COLUMNA ACCIONES FIJA -->
+                            <th class="table-sticky-right" style="min-width:160px; text-align:center;">
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for a in anexos %}
+                        <tr>
+
+                            <td>{{ a.nombre_archivo }}</td>
+                            <td>{{ a.tipo_archivo }}</td>
+                            <td>{{ (a.tamano_archivo / 1024) | round(2) }} KB</td>
+                            <td>{{ a.fecha_subida }}</td>
+                            <td>{{ a.usuario_subida }}</td>
+
+                            <!-- ACCIONES -->
+                            <td class="table-sticky-right" style="text-align:center;">
+                                <div class="btn-group btn-group-sm">
+
+                                    <!-- Descargar -->
+                                    <a href="{{ url_for('empleados.download_anexo', anexo_id=a.id) }}"
+                                       class="btn btn-primary"
+                                       title="Descargar">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+
+                                    <!-- Eliminar -->
+                                    {% if session.user.rol in ['admin','editor'] %}
+                                    <button class="btn btn-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalDeleteAnexo{{ a.id }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+            {% else %}
+            <div class="text-center p-4 text-muted">
+                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                <p class="mt-2">No hay archivos anexos para este empleado.</p>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    {% if session.user.rol in ['admin', 'editor'] %}
+    <div class="mt-3">
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalAgregarAnexo">
+            <i class="bi bi-file-earmark-plus"></i> Añadir Anexos
+        </button>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- MODAL AGREGAR ANEXOS -->
+<div class="modal fade" id="modalAgregarAnexo" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content delete-animate">
+
+            <div class="modal-header text-white" style="background-color:#b30000;">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Añadir Anexos</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST" action="{{ url_for('empleados.upload_anexo', empleado_id=empleado.id) }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <label class="form-label">Seleccionar archivos:</label>
+                    <input type="file" name="archivos" class="form-control" multiple required>
+                    <small class="text-muted">Puede seleccionar varios archivos.</small>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn" style="background-color:#b30000; color:white;">
+                        <i class="bi bi-upload"></i> Subir
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODALES ELIMINAR -->
+{% for a in anexos %}
+<div class="modal fade delete-modal" id="modalDeleteAnexo{{ a.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content delete-animate">
+
+            <div class="modal-header text-white" style="background-color:#b30000;">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    Confirmar eliminación
+                </h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>¿Eliminar el archivo <strong>{{ a.nombre_archivo }}</strong>?</p>
+                <p class="text-danger fw-bold">Esta acción no se puede deshacer.</p>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+
+                <form action="{{ url_for('empleados.delete_anexo', anexo_id=a.id, empleado_id=empleado.id) }}" method="POST">
+                    <button class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-modal').forEach(function (modalEl) {
+        modalEl.addEventListener('show.bs.modal', function () {
+            const box = modalEl.querySelector('.delete-animate');
+            if (!box) return;
+            box.classList.remove('delete-animate');
+            void box.offsetWidth;
+            box.classList.add('delete-animate');
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-3">
+    <h2><i class="bi bi-pencil-square"></i> Editar Usuario</h2>
+</div>
+
+<form method="POST" action="{{ url_for('usuarios.editar_usuario', id=usuario.id) }}">
+    <div class="card">
+        <div class="card-body">
+            <!-- Campo: Nombre -->
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre completo</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ usuario.nombre }}" required>
+            </div>
+
+            <!-- Campo: Nombre de usuario -->
+            <div class="mb-3">
+                <label for="username" class="form-label">Nombre de usuario</label>
+                <input type="text" class="form-control" id="username" name="username" value="{{ usuario.username }}" required>
+            </div>
+
+            <!-- Campo: Rol -->
+            <div class="mb-3">
+                <label for="rol" class="form-label">Rol</label>
+                <select class="form-select" id="rol" name="rol" required>
+                    <option value="admin" {% if usuario.rol == 'admin' %}selected{% endif %}>Admin</option>
+                    <option value="editor" {% if usuario.rol == 'editor' %}selected{% endif %}>Editor</option>
+                    <option value="viewer" {% if usuario.rol == 'viewer' %}selected{% endif %}>Viewer</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card-footer text-end">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Actualizar Usuario
+            </button>
+            <a href="{{ url_for('usuarios.lista_usuarios') }}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+        </div>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block title %}Listado de Empleados{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-people-fill"></i> Listado de Control Interno</h2>
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('empleados.export_excel') }}{% if query %}?q={{ query }}{% endif %}" 
+           class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+        </a>
+        {% if user.rol in ['admin', 'editor'] %}
+        <a href="{{ url_for('empleados.agregar_empleado') }}" class="btn btn-primary">
+            <i class="bi bi-person-plus-fill"></i> Nuevo
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Barra de búsqueda -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" action="{{ url_for('empleados.lista_empleados') }}" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" name="q" class="form-control" 
+                       placeholder="Buscar en todas las columnas (nombre, apellido, CI, empresa, cargo, motivo, evaluación, observaciones, usuario...)" 
+                       value="{{ query }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de empleados con scroll horizontal -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive" style="overflow-x: auto;">
+            <table class="table table-hover table-bordered mb-0" style="min-width: 2500px;">
+                <thead class="table-dark" style="position: sticky; top: 0; z-index: 10;">
+                    <tr>
+                        <th style="min-width: 60px;">ID</th>
+                        <th style="min-width: 180px;">EMPRESA/SUCURSAL</th>
+                        <th style="min-width: 120px;">NOMBRE</th>
+                        <th style="min-width: 130px;">APELLIDO PATERNO</th>
+                        <th style="min-width: 130px;">APELLIDO MATERNO</th>
+                        <th style="min-width: 120px;">CARNET DE IDENTIDAD</th>
+                        <th style="min-width: 150px;">CARGO</th>
+                        <th style="min-width: 110px;">FECHA INGRESO</th>
+                        <th style="min-width: 110px;">FECHA SALIDA</th>
+                        <th style="min-width: 180px;">MOTIVO DESVINCULACIÓN</th>
+                        <th style="min-width: 150px;">EVALUACIÓN INTERNA</th>
+                        <th style="min-width: 200px;">OBSERVACIONES</th>
+                        <th style="min-width: 120px;">USUARIO CREADOR</th>
+                        <th style="min-width: 140px;">FECHA CREACIÓN</th>
+                        <th style="min-width: 140px;">USUARIO MODIFICADOR</th>
+                        <th style="min-width: 140px;">FECHA MODIFICACIÓN</th>
+                        <th style="min-width: 100px;">ANEXOS</th>
+                        <th style="min-width: 150px; position: sticky; right: 0; background-color: #212529;">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    {% for e in empleados %}
+                    <tr>
+                        <td><strong>{{ e.id }}</strong></td>
+                        <td>{{ e.empresa_sucursal }}</td>
+                        <td>{{ e.nombre }}</td>
+                        <td>{{ e.apellido_paterno }}</td>
+                        <td>{{ e.apellido_materno }}</td>
+                        <td>{{ e.carnet_identidad }}</td>
+                        <td>{{ e.cargo }}</td>
+                        <td>
+                            {% if e.fecha_ingreso %}
+                                {{ e.fecha_ingreso.strftime('%d/%m/%Y') }}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if e.fecha_salida %}
+                                {{ e.fecha_salida.strftime('%d/%m/%Y') }}
+                            {% else %}
+                                <span class="badge bg-success">Activo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if e.motivo_desvinculacion %}
+                                {{ e.motivo_desvinculacion }}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if e.evaluacion_interna %}
+                                {% if e.evaluacion_interna == '4. Moderado' %}
+                                    <span class="badge bg-success">{{ e.evaluacion_interna }}</span>
+                                {% elif e.evaluacion_interna == '3. Leve' or e.evaluacion_interna == 'Bueno' %}
+                                    <span class="badge bg-primary">{{ e.evaluacion_interna }}</span>
+                                {% elif e.evaluacion_interna == '2. Negativa' %}
+                                    <span class="badge bg-warning">{{ e.evaluacion_interna }}</span>
+                                {% elif e.evaluacion_interna == '1. Grave' %}
+                                    <span class="badge bg-danger">{{ e.evaluacion_interna }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ e.evaluacion_interna }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Observaciones -->
+                        <td>
+                            {% if e.observaciones %}
+                                <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    {{ e.observaciones[:50] }}{% if e.observaciones|length > 50 %}...{% endif %}
+                                </div>
+
+                                <span class="badge bg-info text-white" 
+                                    style="cursor: pointer; font-size: 0.75rem;"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#observacionesModal{{ e.id }}">
+                                    Ver completo
+                                </span>
+
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+
+                        <td>{{ e.usuario_creador or 'N/A' }}</td>
+                        <td>
+                            {% if e.fecha_creacion %}
+                                {{ e.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}
+                            {% else %}<span class="text-muted">N/A</span>{% endif %}
+                        </td>
+                        <td>{{ e.usuario_modificador or 'N/A' }}</td>
+                        <td>
+                            {% if e.fecha_modificacion %}
+                                {{ e.fecha_modificacion.strftime('%d/%m/%Y %H:%M') }}
+                            {% else %}<span class="text-muted">N/A</span>{% endif %}
+                        </td>
+
+                        <!-- Anexos -->
+                        <td class="text-center">
+                            {% if e.anexos and e.anexos|length > 0 %}
+                                <a href="{{ url_for('empleados.ver_anexos', empleado_id=e.id) }}" 
+                                   class="btn btn-info btn-sm" title="Ver anexos">
+                                   <i class="bi bi-paperclip"></i>
+                                </a>
+                            {% else %}
+                                <span class="text-muted">Sin anexos</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Acciones -->
+                        <td style="position: sticky; right: 0; background-color: white;">
+                            <div class="btn-group btn-group-sm" role="group">
+                                {% if user.rol in ['admin', 'editor'] %}
+                                <a href="{{ url_for('empleados.editar_empleado', id=e.id) }}" 
+                                   class="btn btn-warning" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+
+                                {% if user.rol == 'admin' %}
+                                <!-- BOTÓN ELIMINAR CON MODAL -->
+                                <button class="btn btn-danger"
+                                        title="Eliminar"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalDelete{{ e.id }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="18" class="text-center py-4">
+                            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="mt-2 text-muted">
+                                {% if query %}
+                                    No se encontraron empleados que coincidan con "{{ query }}"
+                                {% else %}
+                                    No hay registros.
+                                {% endif %}
+                            </p>
+
+                            {% if user.rol in ['admin', 'editor'] %}
+                            <a href="{{ url_for('empleados.agregar_empleado') }}" class="btn btn-success">
+                                <i class="bi bi-person-plus-fill"></i> Agregar el primer empleado
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if empleados %}
+    <div class="card-footer text-muted">
+        <div class="d-flex justify-content-between align-items-center">
+            <small>Total de empleados: <strong>{{ empleados|length }}</strong></small>
+            <small class="text-info">
+                <i class="bi bi-arrows-move"></i> Desliza horizontalmente para ver todas las columnas
+            </small>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modales Observaciones -->
+{% for e in empleados %}
+    {% if e.observaciones %}
+    <div class="modal fade" id="observacionesModal{{ e.id }}" tabindex="-1" 
+         aria-labelledby="observacionesModalLabel{{ e.id }}" aria-hidden="true"
+         data-bs-backdrop="true" data-bs-keyboard="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="observacionesModalLabel{{ e.id }}">
+                        <i class="bi bi-chat-left-text-fill me-2"></i>
+                        Observaciones - {{ e.nombre }} {{ e.apellido_paterno }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="p-2">
+                        <p style="white-space: pre-wrap; color: #333; line-height: 1.6;">{{ e.observaciones }}</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+
+<!-- 🔥 Modales de eliminación con animación -->
+{% for e in empleados %}
+<div class="modal fade delete-modal" id="modalDelete{{ e.id }}" tabindex="-1"
+     aria-labelledby="modalDeleteLabel{{ e.id }}" aria-hidden="true"
+     data-bs-backdrop="true" data-bs-keyboard="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content delete-animate">
+            <div class="modal-header delete-header">
+                <h5 class="modal-title" id="modalDeleteLabel{{ e.id }}">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Confirmar eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>
+                    ¿Estás seguro que deseas eliminar al empleado
+                    <strong>{{ e.nombre }} {{ e.apellido_paterno }}</strong>?
+                </p>
+                <p class="text-danger fw-bold mb-0">Esta acción no se puede deshacer.</p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+
+                <a href="{{ url_for('empleados.delete_employee', id=e.id) }}"
+                   class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Eliminar definitivamente
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Estilos y animación -->
+<style>
+/* 🔥 Borde pulsante */
+.delete-animate {
+    animation: pulseBorder 1.4s infinite ease-in-out;
+    border: 3px solid var(--scarlet-light) !important;
+    border-radius: 12px !important;
+    overflow: visible !important; /* evita que se corte el borde */
+}
+
+/* Asegura que el modal deje ver los bordes */
+.modal-dialog, 
+.modal-content {
+    overflow: visible !important;
+}
+
+/* ⚡ Vibración rápida al abrir */
+.delete-modal.show .delete-animate {
+    animation: shake 0.2s ease-in-out, pulseBorder 1.4s infinite ease-in-out;
+}
+
+/* Header rojo fuerte */
+.delete-header {
+    background: linear-gradient(90deg, #8b0000, #c40000);
+    color: white;
+}
+
+/* Efecto vibración */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
+    75% { transform: translateX(-2px); }
+    100% { transform: translateX(0); }
+}
+
+/* Efecto pulso */
+@keyframes pulseBorder {
+    0% { box-shadow: 0 0 0px rgba(255, 0, 0, 0.4); }
+    50% { box-shadow: 0 0 12px rgba(255, 30, 30, 0.9); }
+    100% { box-shadow: 0 0 0px rgba(255, 0, 0, 0.4); }
+}
+</style>
+
+
+{% endblock %}
