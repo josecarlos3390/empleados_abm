@@ -1,4 +1,5 @@
 import pyodbc
+from dbutils.pooled_db import PooledDB
 from config.settings import Config
 
 
@@ -7,27 +8,40 @@ def _detect_driver():
     for driver in pyodbc.drivers():
         if 'ODBC Driver' in driver and 'SQL Server' in driver:
             return driver
-    # Fallback a driver genérico si no hay uno moderno
+    # Fallback a driver generico si no hay uno moderno
     return '{SQL Server}'
 
 
+_DRIVER = _detect_driver()
+
+
+# Pool de conexiones persistentes a SQL Server.
+# mincached: conexiones mantenidas calentadas desde el inicio.
+# maxconnections: limite total de conexiones simultaneas.
+_sqlserver_pool = PooledDB(
+    creator=pyodbc.connect,
+    mincached=2,
+    maxcached=Config.SQLSERVER_POOL_SIZE,
+    maxconnections=Config.SQLSERVER_POOL_SIZE,
+    blocking=True,
+    maxusage=None,
+    DRIVER=_DRIVER,
+    SERVER=f'{Config.SQLSERVER_HOST},{Config.SQLSERVER_PORT}',
+    DATABASE=Config.SQLSERVER_DB,
+    UID=Config.SQLSERVER_USER,
+    PWD=Config.SQLSERVER_PASSWORD,
+    Timeout=10,
+)
+
+
 def get_sqlserver_connection():
-    """Crea y retorna una conexión a SQL Server usando pyodbc."""
-    driver = _detect_driver()
-    conn_str = (
-        f'DRIVER={driver};'
-        f'SERVER={Config.SQLSERVER_HOST},{Config.SQLSERVER_PORT};'
-        f'DATABASE={Config.SQLSERVER_DB};'
-        f'UID={Config.SQLSERVER_USER};'
-        f'PWD={Config.SQLSERVER_PASSWORD};'
-        'Timeout=10;'
-    )
-    return pyodbc.connect(conn_str)
+    """Obtiene una conexion del pool de SQL Server."""
+    return _sqlserver_pool.connection()
 
 
 def buscar_transaccion(transaction_id):
     """
-    Busca una transacción en SQL Server por su TransactionId.
+    Busca una transaccion en SQL Server por su TransactionId.
     Retorna un dict {'transaction_id': str, 'total': float} o None si no existe.
     """
     query = """

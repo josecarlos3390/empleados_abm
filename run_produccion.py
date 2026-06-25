@@ -5,6 +5,7 @@ Sirve la aplicacion bajo el prefijo /sge definido por DispatcherMiddleware.
 """
 from waitress import serve
 from app import create_prefixed_app
+from config.settings import Config
 
 
 application = create_prefixed_app()
@@ -12,13 +13,13 @@ application = create_prefixed_app()
 
 if __name__ == '__main__':
     print('Iniciando servidor de produccion con Waitress...')
-    print('Escuchando en http://0.0.0.0:5000/sge')
+    print(f"Escuchando en http://0.0.0.0:5000/sge ({Config.SERVER_THREADS} hilos)")
     print('Presiona CTRL+C para detener.')
 
     serve(
         application,
         host='0.0.0.0',
         port=5000,
-        threads=4,
+        threads=Config.SERVER_THREADS,
         clear_untrusted_proxy_headers=True,
     )

@@ -6,7 +6,7 @@ class Database:
     def __init__(self):
         self.pool = pooling.MySQLConnectionPool(
             pool_name='empleados_pool',
-            pool_size=5,
+            pool_size=Config.DB_POOL_SIZE,
             pool_reset_session=True,
             host=Config.DB_HOST,
             database=Config.DB_NAME,
