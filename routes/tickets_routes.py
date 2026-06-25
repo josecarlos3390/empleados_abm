@@ -60,7 +60,7 @@ def tickets():
                     total = transaccion['total']
                     for denom in DENOMINACIONES:
                         cantidad = int(total // denom)
-                        if cantidad > 0:
+                        if 0 < cantidad <= Config.MAX_TICKETS_POR_IMPRESION:
                             opciones.append({
                                 'denominacion': denom,
                                 'cantidad': cantidad,
@@ -69,10 +69,19 @@ def tickets():
                             })
 
                     if not opciones:
-                        flash(
-                            'El total de la factura no alcanza para imprimir tickets de 300 o 500 Bs.',
-                            'warning'
-                        )
+                        cantidad_300 = int(total // 300)
+                        cantidad_500 = int(total // 500)
+                        if cantidad_300 > Config.MAX_TICKETS_POR_IMPRESION or cantidad_500 > Config.MAX_TICKETS_POR_IMPRESION:
+                            flash(
+                                f'El total de la factura supera el límite permitido de {Config.MAX_TICKETS_POR_IMPRESION} tickets. '
+                                'Contactá al administrador para gestionar esta transacción.',
+                                'danger'
+                            )
+                        else:
+                            flash(
+                                'El total de la factura no alcanza para imprimir tickets de 300 o 500 Bs.',
+                                'warning'
+                            )
 
     return render_template(
         'tickets/tickets.html',
