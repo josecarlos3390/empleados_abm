@@ -13,10 +13,10 @@
 
 .ticket-preview {
     width: 80mm;
-    min-height: 100mm;
-    border: 1px solid #333;
-    padding: 5mm;
-    margin-bottom: 10mm;
+    min-height: 60mm;
+    border: 1px dashed #999;
+    padding: 4mm;
+    margin-bottom: 4mm;
     box-sizing: border-box;
     page-break-inside: avoid;
     font-family: 'Helvetica', 'Arial', sans-serif;
@@ -94,6 +94,11 @@
 }
 
 @media print {
+    @page {
+        size: 80mm auto;
+        margin: 0;
+    }
+
     /* Ocultar navbar, footer y controles de la página */
     .navbar,
     .main-footer,
@@ -105,7 +110,8 @@
     }
 
     /* Quitar márgenes del contenedor principal */
-    .container {
+    .container,
+    .container-fluid {
         margin: 0 !important;
         padding: 0 !important;
         max-width: 100% !important;
@@ -117,13 +123,24 @@
         background: white;
     }
 
-    .ticket-preview {
+    .tickets-container {
+        max-width: 80mm;
         margin: 0 auto;
-        page-break-after: always;
     }
 
-    .ticket-preview:last-child {
+    .ticket-preview {
+        width: 80mm;
+        min-height: auto;
+        border: none;
+        padding: 3mm 2mm;
+        margin: 0;
+        page-break-inside: avoid;
         page-break-after: auto;
+    }
+
+    /* Línea separadora sutil entre tickets para corte manual */
+    .ticket-preview + .ticket-preview {
+        border-top: 1px dashed #ccc;
     }
 }
 </style>
@@ -139,7 +156,7 @@
                 </div>
             {% endif %}
             <p class="mt-3 mb-0">
-                Revisá los tickets y hacé clic en <strong>Imprimir</strong>. Se abrirá el diálogo de impresión de tu navegador.
+                Revisá los tickets y hacé clic en <strong>Imprimir</strong>. En el diálogo seleccioná la <strong>impresora térmica</strong> y el tamaño de papel <strong>80 mm</strong>.
             </p>
             <div class="mt-3 d-flex justify-content-center gap-2">
                 <button type="button" class="btn btn-success btn-lg" onclick="window.print()">
@@ -192,9 +209,10 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Auto-abrir el diálogo de impresión al cargar la página (opcional, mejora UX)
-    // Descomentar la siguiente línea si se desea que aparezca automáticamente:
-    // window.print();
+    // Auto-abrir el diálogo de impresión al cargar la página
+    setTimeout(function () {
+        window.print();
+    }, 500);
 });
 </script>
 {% endblock %}
