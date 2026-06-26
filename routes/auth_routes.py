@@ -21,4 +21,4 @@ def login():
 def logout():
     session.pop('user', None)
     flash('Sesión cerrada', 'info')
-    return redirect(url_for('auth.login'))
+    return redirect(url_for('tickets.tickets'))

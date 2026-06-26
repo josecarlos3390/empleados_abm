@@ -34,9 +34,6 @@
                     <a href="{{ url_for('usuarios.lista_usuarios') }}" class="btn btn-outline-light btn-sm ms-3 shadow-hover">
                         <i class="bi bi-person-gear"></i> Usuarios
                     </a>
-                    <a href="{{ url_for('tickets.admin_tickets') }}" class="btn btn-outline-light btn-sm ms-2 shadow-hover">
-                        <i class="bi bi-ticket-perforated"></i> Tickets Admin
-                    </a>
                 {% endif %}
             </div>
 
@@ -138,10 +135,13 @@
       </div>
     </div>
 
-    <!-- ⚙️ SCRIPT DE CONFIRMACIÓN GLOBAL -->
+<!-- ⚙️ SCRIPT DE CONFIRMACIÓN GLOBAL -->
     <script>
     document.addEventListener("DOMContentLoaded", function () {
         let confirmLink = null;
+        const btnYes = document.getElementById('confirmModalYes');
+        const defaultBtnClass = 'btn-danger';
+        const defaultBtnText = '<i class="bi bi-trash-fill"></i> Eliminar';
 
         document.querySelectorAll('a[data-confirm]').forEach(link => {
             link.addEventListener('click', function (e) {
@@ -151,10 +151,16 @@
                 const message = this.getAttribute('data-confirm') || '¿Está seguro de eliminar este registro?';
                 document.getElementById('confirmModalMessage').innerText = message;
 
+                const customClass = this.getAttribute('data-confirm-btn-class') || defaultBtnClass;
+                const customText = this.getAttribute('data-confirm-btn-text') || defaultBtnText;
+
+                btnYes.className = 'btn ' + customClass;
+                btnYes.innerHTML = customText;
+
                 const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
                 modal.show();
 
-                document.getElementById('confirmModalYes').onclick = function () {
+                btnYes.onclick = function () {
                     modal.hide();
                     window.location.href = confirmLink.href;
                 };

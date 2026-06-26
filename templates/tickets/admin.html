@@ -69,6 +69,8 @@
                                         href="{{ url_for('tickets.reimprimir_ticket', transaction_id=imp.transaction_id) }}"
                                         class="btn btn-sm btn-warning"
                                         data-confirm="¿Reimprimir la transacción {{ imp.transaction_id }}?"
+                                        data-confirm-btn-text="<i class='bi bi-printer'></i> Reimprimir"
+                                        data-confirm-btn-class="btn-warning"
                                     >
                                         <i class="bi bi-printer"></i> Reimprimir
                                     </a>

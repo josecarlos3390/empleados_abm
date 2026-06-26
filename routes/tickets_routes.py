@@ -1,6 +1,6 @@
 import re
 from flask import (
-    Blueprint, render_template, request, flash, redirect, url_for, send_file
+    Blueprint, render_template, request, flash, redirect, url_for, send_file, session
 )
 
 from config.settings import Config
@@ -16,7 +16,6 @@ from db.tickets import (
     contar_reimpresiones,
 )
 from utils.pdf_utils import generar_pdf_tickets
-from utils.security import admin_required, login_required
 
 
 tickets_bp = Blueprint('tickets', __name__, url_prefix='/tickets')
@@ -115,8 +114,53 @@ def comprobante(transaction_id):
     return render_template('tickets/comprobante.html', impresion=impresion)
 
 
+def _tickets_admin_required():
+    """Verifica que el usuario esté logueado y sea admin. Si no, redirige al login de tickets."""
+    user = session.get('user')
+    if not user or user.get('rol') != 'admin':
+        flash('Acceso restringido a administradores.', 'warning')
+        return redirect(url_for('tickets.login_tickets'))
+    return None
+
+
+@tickets_bp.route('/login', methods=['GET', 'POST'], endpoint='login_tickets')
+def login_tickets():
+    """Login exclusivo para el panel de administración de tickets."""
+    user = session.get('user')
+    if user and user.get('rol') == 'admin':
+        return redirect(url_for('tickets.admin_tickets'))
+
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        from db.usuarios import get_user_by_username
+        from werkzeug.security import check_password_hash
+        usuario = get_user_by_username(username)
+        if usuario and check_password_hash(usuario['password'], password):
+            if usuario['rol'] == 'admin':
+                session['user'] = {
+                    'id': usuario['id'],
+                    'username': usuario['username'],
+                    'rol': usuario['rol']
+                }
+                flash('Bienvenido al panel de tickets.', 'success')
+                return redirect(url_for('tickets.admin_tickets'))
+            flash('El usuario no tiene permisos de administrador.', 'danger')
+        else:
+            flash('Usuario o contraseña incorrectos.', 'danger')
+
+    return render_template('tickets/login.html', body_class='login-page')
+
+
+@tickets_bp.route('/logout', endpoint='logout_tickets')
+def logout_tickets():
+    """Cierra sesión y vuelve al formulario público de tickets."""
+    session.pop('user', None)
+    flash('Sesión cerrada.', 'info')
+    return redirect(url_for('tickets.tickets'))
+
+
 @tickets_bp.route('/previsualizar/<transaction_id>')
-@login_required
 def previsualizar(transaction_id):
     """
     Muestra una previsualización HTML de los tickets lista para imprimir
@@ -142,9 +186,10 @@ def previsualizar(transaction_id):
 
 
 @tickets_bp.route('/admin')
-@login_required
-@admin_required
 def admin_tickets():
+    redireccion = _tickets_admin_required()
+    if redireccion:
+        return redireccion
     """Panel de administración para listar transacciones impresas."""
     pagina = request.args.get('page', 1, type=int)
     por_pagina = request.args.get('per_page', 20, type=int)
@@ -171,9 +216,10 @@ def admin_tickets():
 
 
 @tickets_bp.route('/admin/reimprimir/<transaction_id>', methods=['GET', 'POST'])
-@login_required
-@admin_required
 def reimprimir_ticket(transaction_id):
+    redireccion = _tickets_admin_required()
+    if redireccion:
+        return redireccion
     """
     Permite a un administrador reimprimir una transacción ya impresa.
     Registra la reimpresión y redirige a la previsualización.
@@ -206,7 +252,6 @@ def reimprimir_ticket(transaction_id):
 
 
 @tickets_bp.route('/imprimir', methods=['POST'])
-@login_required
 def imprimir():
     """
     Genera los tickets, registra la impresión y:
