@@ -21,6 +21,14 @@ def create_flask_app():
     # Crear carpeta de uploads si no existe
     os.makedirs(app.config.get('UPLOAD_FOLDER', 'uploads'), exist_ok=True)
 
+    # Crear tablas de tickets si no existen (ignorar errores de conexión transitorios)
+    try:
+        from db.tickets import crear_tabla_tickets, crear_tabla_reimpresiones
+        crear_tabla_tickets()
+        crear_tabla_reimpresiones()
+    except Exception:
+        app.logger.warning('No se pudieron crear las tablas de tickets', exc_info=True)
+
     # Registrar Blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(empleados_bp)

@@ -25,7 +25,10 @@ class Config:
     SQLSERVER_POOL_SIZE = int(os.getenv('SQLSERVER_POOL_SIZE', 12))
 
     # Waitress (servidor de produccion)
-    SERVER_THREADS = int(os.getenv('SERVER_THREADS', 12))
+    SERVER_THREADS = int(os.getenv('SERVER_THREADS', 4))
 
     # Limite de tickets por impresion para evitar abuso o saturacion
     MAX_TICKETS_POR_IMPRESION = int(os.getenv('MAX_TICKETS_POR_IMPRESION', 50))
+
+    # Modo de entrega de tickets: true=descargar PDF, false=previsualizar e imprimir
+    TICKET_MODO_DESCARGA = os.getenv('TICKET_MODO_DESCARGA', 'true').lower() == 'true'

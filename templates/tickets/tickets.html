@@ -197,6 +197,15 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        const modoDescarga = {{ 'true' if modo_descarga else 'false' }};
+
+        if (!modoDescarga) {
+            // Modo previsualización: enviar el formulario normalmente y dejar que
+            // el servidor redirija a la página de previsualización.
+            formPendiente.submit();
+            return;
+        }
+
         const originalText = botonPendiente.innerHTML;
         botonPendiente.disabled = true;
         botonPendiente.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Imprimiendo...';
@@ -236,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <p class="mb-1"><strong>Transacción:</strong> ${transactionId}</p>
                     <p class="mb-1"><strong>Tickets impresos:</strong> ${cantidad} ticket(s) de Bs ${denominacion}</p>
                     <p class="mb-0 mt-2 text-success fw-bold">
-                        <i class="bi bi-check-circle-fill"></i> Los tickets se imprimieron correctamente.
+                        <i class="bi bi-check-circle-fill"></i> Los tickets se descargaron correctamente.
                     </p>
                 `;
                 // Al presionar Aceptar en el modal de exito, redirigir al comprobante

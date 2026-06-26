@@ -8,9 +8,15 @@ from db.sqlserver import buscar_transaccion
 from db.tickets import (
     ya_fue_impresa,
     obtener_impresion,
+    obtener_impresion_por_id,
     registrar_impresion,
+    registrar_reimpresion,
+    listar_impresiones_paginada,
+    contar_impresiones,
+    contar_reimpresiones,
 )
 from utils.pdf_utils import generar_pdf_tickets
+from utils.security import admin_required, login_required
 
 
 tickets_bp = Blueprint('tickets', __name__, url_prefix='/tickets')
@@ -90,6 +96,7 @@ def tickets():
         opciones=opciones,
         ya_impresa=ya_impresa,
         impresion=impresion,
+        modo_descarga=Config.TICKET_MODO_DESCARGA,
     )
 
 
@@ -108,9 +115,105 @@ def comprobante(transaction_id):
     return render_template('tickets/comprobante.html', impresion=impresion)
 
 
+@tickets_bp.route('/previsualizar/<transaction_id>')
+@login_required
+def previsualizar(transaction_id):
+    """
+    Muestra una previsualización HTML de los tickets lista para imprimir
+    con el diálogo de impresión del navegador.
+    """
+    if not _validar_transaction_id(transaction_id):
+        flash('Número de transacción inválido.', 'danger')
+        return redirect(url_for('tickets.tickets'))
+
+    impresion = obtener_impresion(transaction_id)
+    if not impresion:
+        flash('No se encontró la impresión de esa transacción.', 'danger')
+        return redirect(url_for('tickets.tickets'))
+
+    es_reimpresion = request.args.get('reimpresion', 'false').lower() == 'true'
+
+    return render_template(
+        'tickets/previsualizar.html',
+        impresion=impresion,
+        es_reimpresion=es_reimpresion,
+        modo_descarga=Config.TICKET_MODO_DESCARGA,
+    )
+
+
+@tickets_bp.route('/admin')
+@login_required
+@admin_required
+def admin_tickets():
+    """Panel de administración para listar transacciones impresas."""
+    pagina = request.args.get('page', 1, type=int)
+    por_pagina = request.args.get('per_page', 20, type=int)
+    busqueda = request.args.get('q', '').strip().upper() or None
+
+    if pagina < 1:
+        pagina = 1
+    if por_pagina < 1:
+        por_pagina = 20
+
+    total = contar_impresiones(busqueda)
+    impresiones = listar_impresiones_paginada(pagina, por_pagina, busqueda)
+    total_paginas = (total + por_pagina - 1) // por_pagina if total > 0 else 1
+
+    return render_template(
+        'tickets/admin.html',
+        impresiones=impresiones,
+        pagina=pagina,
+        por_pagina=por_pagina,
+        total_paginas=total_paginas,
+        total=total,
+        busqueda=busqueda or '',
+    )
+
+
+@tickets_bp.route('/admin/reimprimir/<transaction_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def reimprimir_ticket(transaction_id):
+    """
+    Permite a un administrador reimprimir una transacción ya impresa.
+    Registra la reimpresión y redirige a la previsualización.
+    """
+    if not _validar_transaction_id(transaction_id):
+        flash('Número de transacción inválido.', 'danger')
+        return redirect(url_for('tickets.admin_tickets'))
+
+    impresion = obtener_impresion(transaction_id)
+    if not impresion:
+        flash('No se encontró la impresión de esa transacción.', 'danger')
+        return redirect(url_for('tickets.admin_tickets'))
+
+    # Validar que la transacción sigue existiendo en SQL Server
+    transaccion = buscar_transaccion(transaction_id)
+    if not transaccion:
+        flash('La transacción no se encuentra disponible en el sistema origen.', 'danger')
+        return redirect(url_for('tickets.admin_tickets'))
+
+    # Registrar la reimpresión
+    reimpreso_por = session.get('user', {}).get('username')
+    try:
+        registrar_reimpresion(impresion['id'], transaction_id, reimpreso_por)
+    except Exception:
+        flash('Error al registrar la reimpresión. Intente nuevamente.', 'danger')
+        return redirect(url_for('tickets.admin_tickets'))
+
+    flash('Reimpresión registrada. Se generó la previsualización.', 'success')
+    return redirect(url_for('tickets.previsualizar', transaction_id=transaction_id, reimpresion='true'))
+
+
 @tickets_bp.route('/imprimir', methods=['POST'])
+@login_required
 def imprimir():
-    """Genera el PDF de tickets, registra la impresión y lo descarga."""
+    """
+    Genera los tickets, registra la impresión y:
+    - Modo descarga (TICKET_MODO_DESCARGA=true): descarga el PDF.
+    - Modo previsualización (TICKET_MODO_DESCARGA=false): redirige a la vista
+      de previsualización lista para imprimir con window.print().
+    """
     transaction_id = request.form.get('transaction_id', '').strip().upper()
     denominacion_raw = request.form.get('denominacion', '')
 
@@ -150,21 +253,25 @@ def imprimir():
         return redirect(url_for('tickets.tickets'))
 
     total_impreso = cantidad * denominacion
+    cajero = session.get('user', {}).get('username')
 
-    # Generar PDF en memoria
-    pdf_buffer = generar_pdf_tickets(transaction_id, total, denominacion, cantidad)
-
-    # Registrar en MySQL antes de entregar el archivo
+    # Registrar en MySQL
     try:
-        registrar_impresion(transaction_id, total, denominacion, cantidad, total_impreso)
+        registrar_impresion(transaction_id, total, denominacion, cantidad, total_impreso, cajero)
     except Exception:
         flash('Error al registrar la impresión. Intente nuevamente.', 'danger')
         return redirect(url_for('tickets.tickets'))
 
-    filename = f'tickets_{transaction_id}_{denominacion}.pdf'
-    return send_file(
-        pdf_buffer,
-        mimetype='application/pdf',
-        as_attachment=True,
-        download_name=filename,
-    )
+    if Config.TICKET_MODO_DESCARGA:
+        # Modo descarga: generar PDF y entregarlo
+        pdf_buffer = generar_pdf_tickets(transaction_id, total, denominacion, cantidad)
+        filename = f'tickets_{transaction_id}_{denominacion}.pdf'
+        return send_file(
+            pdf_buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=filename,
+        )
+
+    # Modo previsualización: redirigir a la vista de impresión
+    return redirect(url_for('tickets.previsualizar', transaction_id=transaction_id))
