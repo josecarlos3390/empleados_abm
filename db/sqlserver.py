@@ -18,25 +18,35 @@ _DRIVER = _detect_driver()
 # Pool de conexiones persistentes a SQL Server.
 # mincached: conexiones mantenidas calentadas desde el inicio.
 # maxconnections: limite total de conexiones simultaneas.
-_sqlserver_pool = PooledDB(
-    creator=pyodbc.connect,
-    mincached=2,
-    maxcached=Config.SQLSERVER_POOL_SIZE,
-    maxconnections=Config.SQLSERVER_POOL_SIZE,
-    blocking=True,
-    maxusage=None,
-    DRIVER=_DRIVER,
-    SERVER=f'{Config.SQLSERVER_HOST},{Config.SQLSERVER_PORT}',
-    DATABASE=Config.SQLSERVER_DB,
-    UID=Config.SQLSERVER_USER,
-    PWD=Config.SQLSERVER_PASSWORD,
-    Timeout=10,
-)
+# NOTA: se inicializa de forma perezosa para no bloquear el arranque de la
+# aplicacion cuando SQL Server no esta configurado o disponible.
+_sqlserver_pool = None
+
+
+def _get_sqlserver_pool():
+    """Crea y retorna el pool de conexiones a SQL Server (lazy)."""
+    global _sqlserver_pool
+    if _sqlserver_pool is None:
+        _sqlserver_pool = PooledDB(
+            creator=pyodbc.connect,
+            mincached=2,
+            maxcached=Config.SQLSERVER_POOL_SIZE,
+            maxconnections=Config.SQLSERVER_POOL_SIZE,
+            blocking=True,
+            maxusage=None,
+            DRIVER=_DRIVER,
+            SERVER=f'{Config.SQLSERVER_HOST},{Config.SQLSERVER_PORT}',
+            DATABASE=Config.SQLSERVER_DB,
+            UID=Config.SQLSERVER_USER,
+            PWD=Config.SQLSERVER_PASSWORD,
+            Timeout=10,
+        )
+    return _sqlserver_pool
 
 
 def get_sqlserver_connection():
     """Obtiene una conexion del pool de SQL Server."""
-    return _sqlserver_pool.connection()
+    return _get_sqlserver_pool().connection()
 
 
 def buscar_transaccion(transaction_id):
