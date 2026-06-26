@@ -128,19 +128,18 @@
         margin: 0 auto;
     }
 
-    .ticket-preview {
+.ticket-preview {
         width: 80mm;
         min-height: auto;
         border: none;
         padding: 3mm 2mm;
         margin: 0;
         page-break-inside: avoid;
-        page-break-after: auto;
+        page-break-after: always;
     }
 
-    /* Línea separadora sutil entre tickets para corte manual */
-    .ticket-preview + .ticket-preview {
-        border-top: 1px dashed #ccc;
+    .ticket-preview:last-child {
+        page-break-after: auto;
     }
 }
 </style>
@@ -156,7 +155,7 @@
                 </div>
             {% endif %}
             <p class="mt-3 mb-0">
-                Revisá los tickets y hacé clic en <strong>Imprimir</strong>. En el diálogo seleccioná la <strong>impresora térmica</strong> y el tamaño de papel <strong>80 mm</strong>.
+                Revisá los tickets y hacé clic en <strong>Imprimir</strong>. En el diálogo seleccioná la <strong>BIXOLON SRP-350PLUSIII</strong>, papel <strong>80 mm</strong>, y activá el corte automático después de cada página en las preferencias de la impresora.
             </p>
             <div class="mt-3 d-flex justify-content-center gap-2">
                 <button type="button" class="btn btn-success btn-lg" onclick="window.print()">
